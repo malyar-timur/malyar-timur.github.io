@@ -558,6 +558,8 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.35rem 0.85rem;
     border-radius: var(--radius-sm);
     font-size: 0.95rem;
+    white-space: nowrap; /* Prevent price value itself from wrapping */
+    flex-shrink: 0; /* Prevent price value from shrinking */
 }
 
 .price-note {
@@ -765,6 +767,10 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
     transition: var(--transition-smooth);
     display: block;
+    /* High-Performance Rendering & GPU Acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .portfolio-overlay {
@@ -1165,6 +1171,19 @@ footer {
     }
     .price-list-box {
         padding: 2rem 1.5rem;
+    }
+    .price-list li {
+        font-size: 0.95rem;
+        padding: 0.95rem 0;
+        gap: 0.75rem; /* Ensure clean spacing between name and price value */
+    }
+    .price-list .price-name {
+        line-height: 1.35;
+        flex: 1; /* Allow name to wrap gracefully if needed */
+    }
+    .price-list .price-value {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.65rem;
     }
     .rating-summary {
         flex-direction: column;
