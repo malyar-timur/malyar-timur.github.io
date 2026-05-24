@@ -1,24 +1,51 @@
-// script.js
+// script.js - Interactive elements and micro-animations for Timur's Painting website
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Navbar scroll effect
+    
+    // 1. Dynamic Glassmorphic Navbar Scrolling Effect
     const navbar = document.querySelector('.navbar');
     
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.9)';
-            navbar.style.backdropFilter = 'blur(10px)';
-            navbar.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+    const handleNavbarScroll = () => {
+        if (window.scrollY > 40) {
+            navbar.classList.add('scrolled');
         } else {
-            navbar.style.background = 'var(--bg-white)';
-            navbar.style.backdropFilter = 'none';
-            navbar.style.boxShadow = 'var(--shadow-sm)';
+            navbar.classList.remove('scrolled');
         }
+    };
+    
+    // Initialize on load and bind to scroll
+    handleNavbarScroll();
+    window.addEventListener('scroll', handleNavbarScroll, { passive: true });
+
+    // 2. High-Performance Intersection Observer for Scroll Reveals
+    const revealElements = document.querySelectorAll('.reveal');
+    
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -60px 0px', // Trigger slightly before element enters viewport
+        threshold: 0.1 // 10% visibility
+    };
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                // Add tiny stagger delay for multiple items in view
+                const delay = (index % 3) * 100;
+                setTimeout(() => {
+                    entry.target.classList.add('active');
+                }, delay);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    revealElements.forEach(el => {
+        revealObserver.observe(el);
     });
 
-    // Smooth scrolling for anchor links
+    // 3. Smooth Scrolling for Navigation Links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
+        anchor.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href');
             if (targetId === '#') return;
@@ -33,67 +60,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Scroll Animation Observer
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-
-    // Apply animation classes to elements
-    const animateElements = document.querySelectorAll('.feature-card, .review-card, .why-item, .price-list-box, .portfolio-grid img');
+    // 4. Elegant Full-Screen Portfolio Image Viewer Modal
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
     
-    animateElements.forEach((el, index) => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = `all 0.6s ease ${index % 4 * 0.1}s`;
-        observer.observe(el);
-    });
+    portfolioItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const img = item.querySelector('img');
+            if (!img) return;
 
-    // Image gallery modal (optional simple implementation)
-    const galleryImages = document.querySelectorAll('.portfolio-grid img');
-    galleryImages.forEach(img => {
-        img.addEventListener('click', () => {
-            // Very simple full-screen image preview
+            // Create glassmorphic modal markup
             const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-            overlay.style.zIndex = '2000';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.cursor = 'pointer';
-
+            overlay.className = 'modal-overlay';
+            
             const fullImg = document.createElement('img');
+            fullImg.className = 'modal-image';
             fullImg.src = img.src;
-            fullImg.style.maxWidth = '90%';
-            fullImg.style.maxHeight = '90%';
-            fullImg.style.objectFit = 'contain';
-            fullImg.style.borderRadius = '8px';
-
+            fullImg.alt = img.alt;
+            
             overlay.appendChild(fullImg);
             document.body.appendChild(overlay);
+            
+            // Force reflow and activate transitions
+            setTimeout(() => {
+                overlay.classList.add('active');
+            }, 10);
 
-            // Prevent scrolling
+            // Freeze background scrolling
             document.body.style.overflow = 'hidden';
 
+            // Close modal on click
             overlay.addEventListener('click', () => {
-                document.body.removeChild(overlay);
-                document.body.style.overflow = 'auto';
+                overlay.classList.remove('active');
+                
+                // Wait for transition before removing from DOM
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                    document.body.style.overflow = '';
+                }, 300);
             });
         });
     });
